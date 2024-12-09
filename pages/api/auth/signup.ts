@@ -22,7 +22,7 @@ export default async function handler(
     }
 
     // Create new user
-    const user = await User.create({ email, password });
+    await User.create({ email, password });
     
     res.status(201).json({ message: 'User created successfully' });
   } catch (error) {

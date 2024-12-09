@@ -1,8 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/router';
-import { hash } from 'bcryptjs';
+import Link from 'next/link';
 
-const Signup = () => {
+const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -10,24 +10,24 @@ const Signup = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
+
     try {
-      const hashedPassword = await hash(password, 10);
-      
-      const response = await fetch('/api/auth/signup', {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: hashedPassword }),
+        body: JSON.stringify({ email, password }),
       });
 
-      if (response.ok) {
-        router.push('/auth/signin');
-      } else {
-        const data = await response.json();
-        setError(data.message || 'Something went wrong');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Something went wrong');
       }
-    } catch (err) {
-      setError('An error occurred during signup');
-      console.error(err);
+
+      router.push('/auth/signin');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Something went wrong');
     }
   };
 
@@ -36,7 +36,7 @@ const Signup = () => {
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-96">
         <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="mb-4 p-2 bg-red-100 text-red-600 rounded">
             {error}
           </div>
         )}
@@ -63,10 +63,16 @@ const Signup = () => {
           >
             Sign Up
           </button>
+          <div className="text-center text-sm text-gray-500">
+            Already have an account?{' '}
+            <Link href="/auth/signin" className="text-blue-500 hover:text-blue-600">
+              Sign In
+            </Link>
+          </div>
         </div>
       </form>
     </div>
   );
 };
 
-export default Signup;
+export default SignUp;

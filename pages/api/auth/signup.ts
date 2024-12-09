@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import dbConnect from '../../../lib/mongodb';
 import User from '../../../models/User';
+import { hash } from 'bcryptjs';
 
 export default async function handler(
   req: NextApiRequest,
@@ -21,8 +22,14 @@ export default async function handler(
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create new user
-    await User.create({ email, password });
+    // Hash password
+    const hashedPassword = await hash(password, 12);
+
+    // Create new user with hashed password
+    await User.create({ 
+      email, 
+      password: hashedPassword 
+    });
     
     res.status(201).json({ message: 'User created successfully' });
   } catch (error) {
